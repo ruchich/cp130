@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+  <!-- Bean implementing edu.uw.ext.framework.account.AccountFactory -->
+  <bean id="AccountFactory" class="AccountFactoryImpl.AccountFactory.impl.class"/>
+
+  <!-- Bean implementing edu.uw.ext.framework.account.Address -->
+  <bean id="Address" class="AddressImpl.Address.impl.class" scope="prototype"/>
+
+  <!-- Bean implementing edu.uw.ext.framework.account.CreditCard -->
+  <bean id="CreditCard" class="CreditCardImpl.CreditCard.impl.class" scope="prototype"/>
+
+  <!-- Bean implementing edu.uw.ext.framework.account.Account -->
+  <bean id="Account" class="AccountImpl.Account.impl.class" scope="prototype"/>
+
+  <!-- Bean implementing edu.uw.ext.framework.account.AccountManagerFactory -->
+  <bean id="AccountManagerFactory" class="AccountManagerImpl.AccountManagerFactory.impl.class"/>
+
+  <!-- Bean providing RDBMS implementation of edu.uw.ext.framework.account.DaoFactory -->
+  <bean id="DaoFactory" class="DaoFactryImpl.DaoFactory.impl.class"/>
+  
+</beans>
+
