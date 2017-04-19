@@ -1,4 +1,4 @@
-package edu.uw.ruc.beans;
+package edu.uw.ruc.account;
 
 import edu.uw.ext.framework.account.CreditCard;
 
@@ -8,11 +8,11 @@ import edu.uw.ext.framework.account.CreditCard;
  */
 public class CreditCardImpl implements CreditCard {
 
-    String accountNumber;
-    String expirationDate;
-    String holder;
-    String issuer;
-    String type;
+  private  String accountNumber;
+    private String expirationDate;
+    private String holder;
+    private String issuer;
+    private String type;
 
     /**
      * Default constructor

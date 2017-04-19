@@ -1,4 +1,4 @@
-package edu.uw.ruc.beans;
+package edu.uw.ruc.account;
 
 import edu.uw.ext.framework.account.Address;
 
@@ -111,5 +111,13 @@ public class AddressImpl implements Address {
     @Override
     public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
+    }
+
+    /**
+     * Concatenates the street, city, state and zip properties into the standard one line postal format.
+     * @return formatted string
+     */
+    public String toString(){
+        return String.format("%s, %s,%s, %s", streetAddress,city,state,zipCode);
     }
 }

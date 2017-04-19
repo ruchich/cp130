@@ -1,4 +1,4 @@
-package edu.uw.ruc.beans;
+package edu.uw.ruc.account;
 
 import edu.uw.ext.framework.account.*;
 import edu.uw.ext.framework.order.Order;
@@ -18,7 +18,7 @@ public class AccountImpl implements Account {
     /**
      * the password hash
      */
-    byte[] passwordHash;
+    private byte[] passwordHash;
 
 
     /**
@@ -30,57 +30,68 @@ public class AccountImpl implements Account {
     /**
      * balance of the account in cents
      */
-    int balance;
+    private  int balance = Integer.MIN_VALUE;
 
     /**
      * Address for the account
      */
-    Address address;
+    private Address address;
 
 
     /**
      * account phone number
      */
-    String phone;
+    private String phone;
 
     /**
      * email address for the account
      */
-    String email;
+    private String email;
 
-    /**
-     * Account's CreditCard card
-     */
-    CreditCard card;
+    /** Account's CreditCard card */
+    private CreditCard card;
 
-    /**
-     * the account manager
-     */
-    AccountManager m;
+    /** the account manager */
+    private  AccountManager acctMgr;
 
 
-    /**
-     *the order to be reflected in the account
-     */
-    Order order;
+    /**the order to be reflected in the account */
+    private  Order order;
 
-    /**
-     * the price the order was executed at
-     */
-    int executionPrice;
+    /** the price the order was executed at */
+    private  int executionPrice;
 
 
-    /**
-     * This class' logger.
-     */
-    static final Logger log = LoggerFactory.getLogger(AccountImpl.class);
+    /** This class' logger.*/
+  private  static final Logger log = LoggerFactory.getLogger(AccountImpl.class);
 
-    /**
-     * No argument constructor
-     */
+    /** the min. allowed account length*/
+    private  static final int MIN_ACCT_LEN  = 8;
+
+    /** the min.allowed acct balance*/
+    private static final int MIN_ACCT_BALANCE = 100_000;
+
+    /** No argument constructor */
     public AccountImpl() {
     }
 
+    /**
+     *
+     * @param acctName
+     * @param passwordHash
+     * @param balance
+     * @throws AccountException if the acct name is too short or balance too low
+     */
+     public AccountImpl( final String acctName, final byte[] passwordHash, final int balance)throws AccountException{
+         if(balance< MIN_ACCT_BALANCE){
+             final String msg  = String.format("Account creation failed for ,"+ acctName, balance);
+             log.warn(msg);
+             throw new AccountException(msg);
+         }
+         setName(acctName);
+         setPasswordHash(passwordHash);
+         this.balance = balance;
+     }
 
     /**
      * Get the account name.
@@ -96,8 +107,12 @@ public class AccountImpl implements Account {
      * @param acctName - the value to be set for the account name
      * @throws AccountException - if the account name is unacceptable
      */
-    public void setName(String acctName)
-            throws AccountException{
+    public void setName(String acctName) throws AccountException{
+        if(acctName==null || acctName.length()<MIN_ACCT_LEN ){
+            final String msg = String.format("Account name '%s' is unaccetable" , acctName);
+            log.warn(msg);
+            throw new AccountException(msg);
+        }
         this.acctName = acctName;
     }
 
@@ -106,7 +121,13 @@ public class AccountImpl implements Account {
      * @return the hashed password
      */
     public byte[] getPasswordHash(){
-        return passwordHash;
+
+        byte[]copy = null;
+        if(passwordHash!=null){
+            copy = new byte[passwordHash.length];
+            System.arraycopy(passwordHash,0,copy,0,passwordHash.length);
+        }
+        return copy;
     }
 
     /**
@@ -114,7 +135,13 @@ public class AccountImpl implements Account {
      * @param passwordHash  - the value to be st for the password hash
      */
     public void setPasswordHash(byte[] passwordHash){
-        this.passwordHash = passwordHash;
+        byte[]copy = null;
+        if(passwordHash!=null){
+            copy = new byte[passwordHash.length];
+            System.arraycopy(passwordHash,0,copy,0,passwordHash.length);
+        }
+
+        this.passwordHash = copy;
     }
 
 
@@ -226,7 +253,12 @@ public class AccountImpl implements Account {
      * @param m
      */
    public void registerAccountManager(AccountManager m){
+        if(acctMgr ==null){
+            acctMgr = m;
+        }else{
+            log.info("Attempting to set the account manager");
 
+        }
     }
 
     /**
@@ -235,6 +267,16 @@ public class AccountImpl implements Account {
      * @param executionPrice - the price the order was executed at
      */
    public void reflectOrder(Order order,int executionPrice){
+       try{
+           balance += order.valueOfOrder(executionPrice);
+           if (acctMgr != null){
+               acctMgr.persist(this);
+           }else{
+               log.error("Account manager has not been intialized", new Exception());
+           }
+       } catch (final AccountException ex){
+           log.error(String.format("Failed to persist account %s ", ex));
+       }
 
     }
 }

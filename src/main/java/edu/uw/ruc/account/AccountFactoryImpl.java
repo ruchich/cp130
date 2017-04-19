@@ -1,4 +1,4 @@
-package edu.uw.ruc.beans;
+package edu.uw.ruc.account;
 
 import edu.uw.ext.framework.account.Account;
 import edu.uw.ext.framework.account.AccountException;
@@ -35,17 +35,18 @@ public final class AccountFactoryImpl implements AccountFactory {
 public Account newAccount(String accountName,
                           byte[] hashedPassword,
                           int initialBalance){
-  //  this.accountName = accountName;
-  //  this.hashedPassword = hashedPassword;
-   // this.initialBalance = initialBalance;
-Account account = new AccountImpl();
+
+Account account = null;
     try {
-        account.setName(accountName);
-    } catch (AccountException e) {
-        e.printStackTrace();
+        account = new AccountImpl(accountName,hashedPassword, initialBalance );
+                if(log.isInfoEnabled()){
+                    log.info(String.format("Created account: '%s', balanced = %d", accountName, initialBalance));
+                }
+    } catch (final AccountException e) {
+        final String  msg = String.format("Account  creation failed for, account '%s' and balance %d", accountName, initialBalance);
+        log.warn(msg, e);
     }
-    account.setPasswordHash(hashedPassword);
-    account.setBalance(initialBalance);
+
     return account;
 }
 }
