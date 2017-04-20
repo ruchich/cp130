@@ -6,22 +6,22 @@
        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
   <!-- Bean implementing edu.uw.ext.framework.account.AccountFactory -->
-  <bean id="AccountFactory" class="AccountFactoryImpl.AccountFactory.impl.class"/>
+  <bean id="AccountFactory" class="edu.uw.ruc.account.AccountFactoryImpl"/>
 
   <!-- Bean implementing edu.uw.ext.framework.account.Address -->
-  <bean id="Address" class="AddressImpl.Address.impl.class" scope="prototype"/>
+  <bean id="Address" class="edu.uw.ruc.account.AddressImpl" scope="prototype"/>
 
   <!-- Bean implementing edu.uw.ext.framework.account.CreditCard -->
-  <bean id="CreditCard" class="CreditCardImpl.CreditCard.impl.class" scope="prototype"/>
+  <bean id="CreditCard" class="edu.uw.ruc.account.CreditCardImpl" scope="prototype"/>
 
   <!-- Bean implementing edu.uw.ext.framework.account.Account -->
-  <bean id="Account" class="AccountImpl.Account.impl.class" scope="prototype"/>
+  <bean id="Account" class="edu.uw.ruc.account.AccountImpl" scope="prototype"/>
 
   <!-- Bean implementing edu.uw.ext.framework.account.AccountManagerFactory -->
-  <bean id="AccountManagerFactory" class="AccountManagerImpl.AccountManagerFactory.impl.class"/>
+  <bean id="AccountManagerFactory" class="edu.uw.ruc.account.AccountManagerFactoryImpl"/>
 
   <!-- Bean providing RDBMS implementation of edu.uw.ext.framework.account.DaoFactory -->
-  <bean id="DaoFactory" class="DaoFactryImpl.DaoFactory.impl.class"/>
+  <bean id="DaoFactory" class="edu.uw.ruc.dao.FileDaoFactoryImpl"/>
   
 </beans>
 

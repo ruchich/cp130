@@ -37,10 +37,16 @@ public final class FileAccountDaoImpl implements AccountDao {
     /**The accounts directory*/
     private final File accountsDir = new File("target", "accounts");
 
+    /**account for this class*/
+
+    Account account;
+
     /**
      * Default constructor
      */
     public FileAccountDaoImpl(){}
+
+   // public FileAccountDaoImpl(Account account){ this.account = account;}
 
     public Account getAccount(String accountName) {
         Account account = null;
