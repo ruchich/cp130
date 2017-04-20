@@ -2,6 +2,8 @@ package edu.uw.ruc.dao;
 
 import edu.uw.ext.framework.account.Account;
 import edu.uw.ext.framework.account.AccountException;
+import edu.uw.ext.framework.account.CreditCard;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.*;
@@ -9,6 +11,7 @@ import java.io.*;
 /**
  * Created by chq-ruchic on 4/19/2017.
  */
+@SuppressWarnings("serial")
 public final class AccountSer implements Serializable {
     /** constant to be written to represent a null string*/
     private static final String NULL_STR = "<null>";
@@ -53,16 +56,24 @@ public final class AccountSer implements Serializable {
              out.writeUTF( s==null ? NULL_STR:s);
          }
 
-    /**
-     * reading from a property file
-     */
-    public static Account read(final InputStream in) throws AccountException {
-        final Properties props = new Properties();
-        try (ClassPathXmlApplicationContext appContext = new ClassPathXmlApplicationContext("context.xml")) {
-            props.load(in);
+    public static Account read(final InputStream in)
+            throws AccountException, IOException{
+    	final DataInputStream dis = new DataInputStream(in);
+    	try (ClassPathXmlApplicationContext appContext = new ClassPathXmlApplicationContext("context.xml")) {
 
-            final Address addr = appContext.getBean(Address.class);
-
+            final Account acct = appContext.getBean(Account.class);
+            acct.setName(dis.readUTF());
+            acct.setPasswordHash(readByteArray(dis));
+            acct.setBalance(dis.readInt());
+            acct.setFullName(readString(dis));
+            acct.setPhone(readString(dis));
+            acct.setEmail(readString(dis));
+            dis.close();
+            return acct;
+    	}
+    }
+            
+    
     /**
      * convenience methos to read from stream
      */

@@ -15,6 +15,6 @@ public final class FileDaoFactoryImpl implements DaoFactory {
      * @throws DaoFactoryException
      */
    public AccountDao getAccountDao() throws DaoFactoryException {
-       return new FileAccountDaoimpl();
+       return new FileAccountDaoImpl();
    }
 }

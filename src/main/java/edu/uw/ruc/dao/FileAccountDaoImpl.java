@@ -19,10 +19,10 @@ import java.io.IOException;
 /**
  * Created by chq-ruchic on 4/17/2017.
  */
-public class FileAccountDaoimpl implements AccountDao {
+public final class FileAccountDaoImpl implements AccountDao {
 
     /** This class' logger.*/
-    private  static final Logger log = LoggerFactory.getLogger(FileAccountDaoimpl.class);
+    private  static final Logger log = LoggerFactory.getLogger(FileAccountDaoImpl.class);
 
     /** name of the file holding the acct data*/
     private  static final String ACCOUNT_FILENAME = "account.dat";
@@ -40,7 +40,7 @@ public class FileAccountDaoimpl implements AccountDao {
     /**
      * Default constructor
      */
-    public FileAccountDaoimpl(){}
+    public FileAccountDaoImpl(){}
 
     public Account getAccount(String accountName) {
         Account account = null;
