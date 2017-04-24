@@ -21,7 +21,9 @@
   <bean id="AccountManagerFactory" class="edu.uw.ruc.account.AccountManagerFactoryImpl"/>
 
   <!-- Bean providing RDBMS implementation of edu.uw.ext.framework.account.DaoFactory -->
-  <bean id="DaoFactory" class="edu.uw.ruc.dao.FileDaoFactoryImpl"/>
+  <bean id="DaoFactory" class="edu.uw.ruc.dao.JSONDaoFactoryImpl"/>
+  
+  
   
 </beans>
 
