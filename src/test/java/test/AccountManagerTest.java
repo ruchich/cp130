@@ -56,7 +56,7 @@ public final class AccountManagerTest {
 	}
 
 	private void setUpAccountManager() throws Exception {
-		DaoFactory fact = (DaoFactory)this.appContext.getBean("DaoFactory", FileDaoFactoryImpl.class);
+		DaoFactory fact = (DaoFactory)this.appContext.getBean("DaoFactory", JSONDaoFactoryImpl.class);
 		this.dao = fact.getAccountDao();
 		this.accountManager = this.accountManagerFactory.newAccountManager(this.dao);
 	}
