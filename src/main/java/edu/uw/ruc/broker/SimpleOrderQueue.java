@@ -21,6 +21,7 @@ OrderQueue<T,E>{
 	BiPredicate<T, E> filter;
 	Comparator<E> cmp;
 	boolean thresholdMet;
+	E order;
 	
 	TreeSet<E> simpleOrder = new TreeSet();
 	/**
@@ -54,10 +55,7 @@ OrderQueue<T,E>{
 	public void enqueue(E order){
 		simpleOrder.add(order);
 	// check if order is dispatchable
-		thresholdMet= filter.test(threshold, order) ;
-		//if it is, dispatch order
-			if(thresholdMet==true)
-				dispatchOrders();
+		dispatchOrders();
 		
 	}
 	
@@ -65,9 +63,10 @@ OrderQueue<T,E>{
 	 * Removes the highest dispatchable order in the queue. If there are orders in the queue but they do not meet the dispatch threshold order will not be removed and null will be returned.
 	 */
 	public E dequeue(){
-		E order = simpleOrder.first();
+		 order = simpleOrder.first();
 		thresholdMet = filter.test(threshold, order);
 		if(thresholdMet==true){
+			simpleOrder.remove(order);
 			return order;
 		}
 			return null;
@@ -75,7 +74,9 @@ OrderQueue<T,E>{
 		
 	
 	public void dispatchOrders(){
-		//to do
+		 order = dequeue();
+		//callback registered
+		
 	}
 	
 	/**
