@@ -23,7 +23,8 @@ OrderQueue<T,E>{
 	boolean thresholdMet;
 	E order;
 	
-	TreeSet<E> simpleOrder = new TreeSet();
+	TreeSet<E> simpleOrder = new TreeSet<E>();
+	
 	/**
 	 * Constructor
 	 * @param threshold - the initial threshold
