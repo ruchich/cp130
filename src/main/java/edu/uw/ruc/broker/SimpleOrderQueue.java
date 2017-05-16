@@ -3,6 +3,7 @@ package edu.uw.ruc.broker;
 import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 
 import edu.uw.ext.framework.broker.*;
 import edu.uw.ext.framework.order.*;
@@ -16,22 +17,26 @@ import edu.uw.ext.framework.order.*;
  */
 public final class SimpleOrderQueue <T,E extends Order> implements 
 OrderQueue<T,E>{
+	/** The current Threshold*/
+	private T threshold ;
 	
-	T threshold ;
-	BiPredicate<T, E> filter;
-	Comparator<E> cmp;
-	boolean thresholdMet;
-	E order;
+	/** filter used to determine id order is dispatchable*/
+	private BiPredicate<T, E> filter;
 	
-	TreeSet<E> simpleOrder = new TreeSet<E>();
+	/** Order Processor used to process the dispatchable order */
+	private Consumer<E> orderProcessor;
+	
+	/** Tree Data Structure*/
+	private TreeSet<E> queue;
 	
 	/**
 	 * Constructor
 	 * @param threshold - the initial threshold
 	 * @param filter  - the dispatch filter used to control dispatching from this queue
 	 */
-	public SimpleOrderQueue(T threshold,
-			 java.util.function.BiPredicate<T,E> filter){
+	public SimpleOrderQueue(final T threshold,
+			 final BiPredicate<T,E> filter){
+		queue = new TreeSet<>();
 		this.threshold = threshold;
 		this.filter = filter;
 	}
@@ -42,20 +47,20 @@ OrderQueue<T,E>{
 	 * @param cmp - Comparator to be used for ordering
 	 */
 	
-	public SimpleOrderQueue(T threshold,
-			 java.util.function.BiPredicate<T,E> filter,Comparator<E> cmp){
+	public SimpleOrderQueue(final T threshold,
+			 final BiPredicate<T,E> filter,final Comparator<E> cmp){
+		queue = new TreeSet<>(cmp);
 		this.threshold = threshold;
 		this.filter = filter;
-		this.cmp = cmp;
+		
 	}
 	
 	/**
 	 * Adds the specified order to the queue. Subsequent to adding the order dispatches any dispatchable orders.
 	 * @param order - the order to be added to the queue
 	 */
-	public void enqueue(E order){
-		simpleOrder.add(order);
-	// check if order is dispatchable
+	public void enqueue(final E order){
+		queue.add(order);
 		dispatchOrders();
 		
 	}
@@ -63,21 +68,34 @@ OrderQueue<T,E>{
 	/**
 	 * Removes the highest dispatchable order in the queue. If there are orders in the queue but they do not meet the dispatch threshold order will not be removed and null will be returned.
 	 */
+	@Override
 	public E dequeue(){
-		 order = simpleOrder.first();
-		thresholdMet = filter.test(threshold, order);
-		if(thresholdMet==true){
-			simpleOrder.remove(order);
-			return order;
+		E order = null;
+		
+		if(!queue.isEmpty()){
+				
+		 order = queue.first();
+		 		 
+		if(filter.test(threshold, order)){
+			queue.remove(order);
+			}else{
+			order = null;
 		}
-			return null;
 		}
+		return order;
+	}
 		
 	
+	@Override
 	public void dispatchOrders(){
-		 order = dequeue();
-		//callback registered
+		E order;
 		
+		while((order = dequeue())!=null){
+			if(orderProcessor != null){
+				orderProcessor.accept(order);
+			}
+		}
+				
 	}
 	
 	/**
@@ -85,8 +103,8 @@ OrderQueue<T,E>{
 	 * @param proc - the callback to be registered
 	 */
 	
-	public void setOrderProcessor(java.util.function.Consumer<E> proc){
-		
+	public void setOrderProcessor(final Consumer<E> proc){
+		orderProcessor = proc;
 	}
 	
 	/**
