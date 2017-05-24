@@ -51,6 +51,10 @@ public class JSONAccountDaoImpl implements AccountDao {
 		module.addAbstractTypeMapping(CreditCard.class, CreditCardImpl.class);
 		mapper = new ObjectMapper();
 		mapper.registerModule(module);
+		if(!accountsDir.exists())
+		{
+			accountsDir.mkdirs();
+		}
 	}
 
 	public Account getAccount(String accountName) {
@@ -59,9 +63,13 @@ public class JSONAccountDaoImpl implements AccountDao {
 		String accountFileName = accountName + ".json";
 	//	final File accountDir = new File(accountsDir, accountName);
 
-		//if (accountDir.exists() && accountDir.isDirectory()) {
+		  // if (accountDir.exists() && accountDir.isDirectory()) {
 			try {
 				File infile = new File(accountsDir, accountFileName);
+				if(!infile.exists())
+				{
+					return null; 
+				}
 				//in = new FileInputStream(infile);
 
 				account = mapper.readValue(infile, Account.class);
