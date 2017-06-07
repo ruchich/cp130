@@ -32,7 +32,8 @@ public class ExchangeNetworkAdapter implements ExchangeAdapter {
 	 /** Milliseconds per second. */
     private static final int ONE_SECOND = 1000;
 	
-    /**
+
+	/**
      * Constructor.
      *
      * @param exchng - the exchange used to service the network requests
@@ -48,7 +49,7 @@ public class ExchangeNetworkAdapter implements ExchangeAdapter {
      * @throws: SocketException - if an error occurs on a socket operation
      */
 	
-	public void ExchangeNetworkAdapter(StockExchange exchg,  String multicastAddress,
+	public  ExchangeNetworkAdapter(StockExchange exchg,  String multicastAddress,
             int multicastPort, int commandPort) throws UnknownHostException, SocketException{
 		this.multicastAddress = multicastAddress;
 		this.multicastPort = multicastPort;
@@ -59,7 +60,7 @@ public class ExchangeNetworkAdapter implements ExchangeAdapter {
 	
 	@Override
 	public void exchangeOpened(ExchangeEvent event) {
-		logger.info("#### Market Opened ###");
+		logger.info("#### Echange Opened ###");
 		   DatagramSocket datagramSocket = null;
 
 	        try {
@@ -73,10 +74,10 @@ public class ExchangeNetworkAdapter implements ExchangeAdapter {
 	            System.out.println("Server ready...");
 
 	            while (true) {
-	                String priceChanged = String.format("PRICE_CHANGE:%S : %d", event.getTicker(), event.getPrice());
-
-	                System.out.println("Sending: " + priceChanged + ", [" + localAddr + ":" + localPort + " -> " + multicastAddress + ":" + multicastPort +"]");
-	                byte[] bytes = priceChanged.getBytes();
+	             //   String priceChanged = String.format("PRICE_CHANGE:%S : %d", event.getTicker(), event.getPrice());
+	            	String exchangeOpenedEvt = "EVENT_OPEN";
+	                System.out.println("Sending: " + exchangeOpenedEvt + ", [" + localAddr + ":" + localPort + " -> " + multicastAddress + ":" + multicastPort +"]");
+	                byte[] bytes = exchangeOpenedEvt.getBytes();
 	                packet.setData(bytes);
 	                packet.setLength(bytes.length);
 	                datagramSocket.send(packet);
@@ -96,9 +97,43 @@ public class ExchangeNetworkAdapter implements ExchangeAdapter {
 
 	@Override
 	public void exchangeClosed(ExchangeEvent event) {
-		// TODO Auto-generated method stub
-		
+		logger.info("#### Exchange Closed ###");
+		   DatagramSocket datagramSocket = null;
+
+	        try {
+	            datagramSocket = new DatagramSocket();
+	            String localAddr = datagramSocket.getLocalAddress().getHostAddress();
+	            int localPort = datagramSocket.getLocalPort();
+	            InetAddress group = InetAddress.getByName(multicastAddress);
+		        byte[] buf = new byte[256];
+	            DatagramPacket packet = new DatagramPacket(buf, buf.length,
+				                                          group, multicastPort);
+	            System.out.println("Server ready...");
+
+	            while (true) {
+	             //   String priceChanged = String.format("PRICE_CHANGE:%S : %d", event.getTicker(), event.getPrice());
+	            		String exchangeClosedEvt = "EVENT_CLOSE";
+	                System.out.println("Sending: " + exchangeClosedEvt + ", [" + localAddr + ":" + localPort + " -> " + multicastAddress + ":" + multicastPort +"]");
+	                byte[] bytes = exchangeClosedEvt.getBytes();
+	                packet.setData(bytes);
+	                packet.setLength(bytes.length);
+	                datagramSocket.send(packet);
+	                Thread.sleep(ONE_SECOND);
+	            }
+	        } catch (IOException ex) {
+	            System.out.println("Server error: " + ex);
+	        } catch (InterruptedException ex) {
+	            System.out.println("Server error: " + ex);
+	        } finally {
+	            if (datagramSocket != null) {
+	                datagramSocket.close();
+	            }
+	        }
+	      
 	}
+
+		
+	
 /**
  * Processes price change events.
  * event - the event to be processed
@@ -108,9 +143,42 @@ public class ExchangeNetworkAdapter implements ExchangeAdapter {
 		if(logger.isInfoEnabled()){
 			logger.info(String.format("Processing price change[%s:%d]",
 					event.getTicker(), event.getPrice()));
+			logger.info("#### Price Changed ###");
+			   DatagramSocket datagramSocket = null;
+
+		        try {
+		            datagramSocket = new DatagramSocket();
+		            String localAddr = datagramSocket.getLocalAddress().getHostAddress();
+		            int localPort = datagramSocket.getLocalPort();
+		            InetAddress group = InetAddress.getByName(multicastAddress);
+			        byte[] buf = new byte[256];
+		            DatagramPacket packet = new DatagramPacket(buf, buf.length,
+					                                          group, multicastPort);
+		            System.out.println("Server ready...");
+
+		            while (true) {
+		               String priceChanged = String.format("PRICE_CHANGE:%S : %d", event.getTicker(), event.getPrice());
+
+		                System.out.println("Sending: " + priceChanged + ", [" + localAddr + ":" + localPort + " -> " + multicastAddress + ":" + multicastPort +"]");
+		                byte[] bytes = priceChanged.getBytes();
+		                packet.setData(bytes);
+		                packet.setLength(bytes.length);
+		                datagramSocket.send(packet);
+		                Thread.sleep(ONE_SECOND);
+		            }
+		        } catch (IOException ex) {
+		            System.out.println("Server error: " + ex);
+		        } catch (InterruptedException ex) {
+		            System.out.println("Server error: " + ex);
+		        } finally {
+		            if (datagramSocket != null) {
+		                datagramSocket.close();
+		            }
+		        }
 		}
-		
-	}
+		      
+		}
+
 
 	@Override
 	public void close() {
