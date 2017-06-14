@@ -3,10 +3,20 @@ package edu.uw.ruc.exchange;
 
 import static edu.uw.ruc.exchange.ProtocolConstants.GET_STATE_CMD;
 import static edu.uw.ruc.exchange.ProtocolConstants.OPEN_STATE;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.Socket;
 import java.util.concurrent.Executors;
 
 import javax.swing.event.EventListenerList;
@@ -123,26 +133,7 @@ public class ExchangeNetworkProxy implements StockExchange{
     public synchronized void open() {
         openState = true;
 
-        MulticastSocket multiSock = null; 
-       while(true){
-        try { 
-        InetAddress group = InetAddress.getByName( mIpAddress ); 
-        multiSock = new MulticastSocket( mPort ); 
-        multiSock.joinGroup( group );
-        byte[] buf = new byte[128];
-        DatagramPacket packet = new DatagramPacket( buf, buf.length );
-        multiSock.receive( packet ); 
-        String event = new String(packet.getData(),0,packet.getLength());
-        
-        System.out.println("Event: " + event);
-        
-        multiSock.leaveGroup(group);
-    } catch( IOException ex ) {
-    	System.err.println( "Server error: " + ex ); 
-    	} finally { 
-    		if( multiSock != null ) multiSock.close();
-    	}
-       }
+       
     
        // ExchangeEvent evnt = ExchangeEvent.newOpenedEvent(this);
        // fireExchangeEvent(evnt);
@@ -178,6 +169,33 @@ public class ExchangeNetworkProxy implements StockExchange{
      */
     public synchronized void removeExchangeListener(final ExchangeListener l) {
         listenerList.remove(ExchangeListener.class, l);
+    }
+    
+    /**sends tcp command*/
+    private String sendTcpCmd(final String cmd){
+    	
+    	PrintWriter prntWrtr = null;
+    	BufferedReader br = null;
+    	String response = "";
+    	
+    	try{ Socket sock = new Socket(mCmdIpAddress, mCmdPort);
+    	if(logger.isInfoEnabled()){
+			logger.info(String.format("Connected to server: %s:%d", sock.getLocalAddress(), sock.getLocalPort()));
+		}
+		final InputStream inStrm = sock.getInputStream();
+		final Reader rdr = new InputStreamReader(inStrm, ENCODING);
+		br = new BufferedReader(rdr);
+		
+		
+		final OutputStream outStrm = sock.getOutputStream();
+		final Writer wrtr = new OutputStreamWriter(outStrm, ENCODING);
+    	 prntWrtr = new PrintWriter (wrtr, true);
+    	 prntWrtr.println(cmd);
+    	 response = br.readLine();
+    	}catch(final IOException ex){
+    		logger.warn("Error sending commad to exchange", ex);
+    	}
+    	return response;
     }
 
     /**
