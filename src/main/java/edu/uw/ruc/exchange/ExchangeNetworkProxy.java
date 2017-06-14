@@ -1,6 +1,13 @@
 package edu.uw.ruc.exchange;
 
+
+import static edu.uw.ruc.exchange.ProtocolConstants.GET_STATE_CMD;
+import static edu.uw.ruc.exchange.ProtocolConstants.OPEN_STATE;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.util.concurrent.Executors;
 
 import javax.swing.event.EventListenerList;
 
@@ -26,11 +33,25 @@ public class ExchangeNetworkProxy implements StockExchange{
     /** The current open/closed state of the exchange */
     private boolean openState;
     
-    private String mIpAddress; 
-    private int mPort;
+    
+
+    /** the command Ip address*/
+	private String mCmdIpAddress;
+
+	/** the command port*/
+	private int mCmdPort;
+	
+	/** The event processor, propagates theevents to registered listners*/
+	private NetEventProcessor eventProcessor;
 
     
-    public ExchangeNetworkProxy( String ipAddress, int port ) { mIpAddress = ipAddress; mPort = port; }
+    public ExchangeNetworkProxy( String eventIpAddress, int eventPort, String cmdIpAddress, int cmdPort)  {
+    	
+    	mCmdIpAddress = cmdIpAddress;
+    	mCmdPort = cmdPort;
+    	eventProcessor = new NetEventProcessor(eventIpAddress, eventPort);
+    	Executors.newSingleThreadExecutor().execute(eventProcessor);
+    	}
 
 
     
@@ -42,28 +63,57 @@ public class ExchangeNetworkProxy implements StockExchange{
      */
 	@Override
 	public boolean isOpen() {
+		final String response = sendTcpCmd(GET_STATE_CMD);
 		
-		return openState;
+		//parse response
+		final boolean state = OPEN_STATE.equals(response);
+		return state;
 	}
 
 	@Override
 	public String[] getTickers() {
-		// TODO Auto-generated method stub
-		return null;
+		final String response = sendTcpCmd(GET_TICKERS_CMD);
+		
+		//parse response
+		final String[] tickers = response.split(ELEMENT_DELIMITER);
+		return tickers;
 	}
 
 	@Override
 	public StockQuote getQuote(String ticker) {
-		// TODO Auto-generated method stub
-		return null;
+		final String cmd = String.join(ELEMENT_DELIMITER, GET_QUOTE_CMD,tickers);
+		final String response = sendTcpCmd(cmd);
+		int price = INVALID_STOCK;
+		try{
+			price = Integer.parseInt(response);
+		
+	}catch (final NumberFormatException ex){
+		logger.warn(String.format("String to int conversion failed: '%s'", response), ex);
 	}
 
+	StockQuote quote = null;
 	
+	if(price>=0){
+		quote = new StockQuote(ticker, price);
+	}
+	return quote;
+	}
 
 	@Override
 	public int executeTrade(Order order) {
-		// TODO Auto-generated method stub
-		return 0;
+		final String orderType = (order.isBuyOrder())? BUY_ORDER: SELL_ORDER;
+		final String cmd = String.join(ELEMENT_DELIMITER,EXECUTE_TRADE_CMD,orderType,
+										order.getAccountId(),order.getStockTicker(),
+										Integer.toString(order.getNumberOfShares());
+		final String response = sendTcpCmd(cmd);
+		int executionPrice = 0;
+		try{
+			executionPrice = Integer.parseInt(response);
+					
+		}catch(final NumberFormatException ex){
+		logger.warn(String.format("String to int conversion failed: '%s'", response), ex);
+	}
+		return executionPrice;
 	}
 	
 	/**
@@ -73,10 +123,29 @@ public class ExchangeNetworkProxy implements StockExchange{
     public synchronized void open() {
         openState = true;
 
-        priceAdjuster.startAdjusting();
-
-        ExchangeEvent evnt = ExchangeEvent.newOpenedEvent(this);
-        fireExchangeEvent(evnt);
+        MulticastSocket multiSock = null; 
+       while(true){
+        try { 
+        InetAddress group = InetAddress.getByName( mIpAddress ); 
+        multiSock = new MulticastSocket( mPort ); 
+        multiSock.joinGroup( group );
+        byte[] buf = new byte[128];
+        DatagramPacket packet = new DatagramPacket( buf, buf.length );
+        multiSock.receive( packet ); 
+        String event = new String(packet.getData(),0,packet.getLength());
+        
+        System.out.println("Event: " + event);
+        
+        multiSock.leaveGroup(group);
+    } catch( IOException ex ) {
+    	System.err.println( "Server error: " + ex ); 
+    	} finally { 
+    		if( multiSock != null ) multiSock.close();
+    	}
+       }
+    
+       // ExchangeEvent evnt = ExchangeEvent.newOpenedEvent(this);
+       // fireExchangeEvent(evnt);
     }
 
     /**
@@ -84,7 +153,7 @@ public class ExchangeNetworkProxy implements StockExchange{
      * adjusting prices and then fires the exchange closed event.
      */
     public synchronized void close() {
-        priceAdjuster.stopAdjusting();
+        
 
         openState = false;
         ExchangeEvent evnt = ExchangeEvent.newClosedEvent(this);
