@@ -3,6 +3,15 @@ package edu.uw.ruc.exchange;
 
 import static edu.uw.ruc.exchange.ProtocolConstants.GET_STATE_CMD;
 import static edu.uw.ruc.exchange.ProtocolConstants.OPEN_STATE;
+import static edu.uw.ruc.exchange.ProtocolConstants.ELEMENT_DELIMITER;
+import static edu.uw.ruc.exchange.ProtocolConstants.BUY_ORDER;
+import static edu.uw.ruc.exchange.ProtocolConstants.EXECUTE_TRADE_CMD;
+import static edu.uw.ruc.exchange.ProtocolConstants.GET_QUOTE_CMD;
+import static edu.uw.ruc.exchange.ProtocolConstants.GET_STATE_CMD;
+import static edu.uw.ruc.exchange.ProtocolConstants.GET_TICKERS_CMD;
+import static edu.uw.ruc.exchange.ProtocolConstants.INVALID_STOCK;
+import static edu.uw.ruc.exchange.ProtocolConstants.SELL_ORDER;
+import static edu.uw.ruc.exchange.ProtocolConstants.ENCODING;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -91,7 +100,7 @@ public class ExchangeNetworkProxy implements StockExchange{
 
 	@Override
 	public StockQuote getQuote(String ticker) {
-		final String cmd = String.join(ELEMENT_DELIMITER, GET_QUOTE_CMD,tickers);
+		final String cmd = String.join(ELEMENT_DELIMITER, GET_QUOTE_CMD,ticker);
 		final String response = sendTcpCmd(cmd);
 		int price = INVALID_STOCK;
 		try{
@@ -114,7 +123,7 @@ public class ExchangeNetworkProxy implements StockExchange{
 		final String orderType = (order.isBuyOrder())? BUY_ORDER: SELL_ORDER;
 		final String cmd = String.join(ELEMENT_DELIMITER,EXECUTE_TRADE_CMD,orderType,
 										order.getAccountId(),order.getStockTicker(),
-										Integer.toString(order.getNumberOfShares());
+										Integer.toString(order.getNumberOfShares()));
 		final String response = sendTcpCmd(cmd);
 		int executionPrice = 0;
 		try{

@@ -1,9 +1,27 @@
 package edu.uw.ruc.exchange;
 
 import java.io.BufferedReader;
+
+import static edu.uw.ruc.exchange.ProtocolConstants.EXECUTE_TRADE_CMD_ACCOUNT_ELEMENT;
+import static edu.uw.ruc.exchange.ProtocolConstants.EXECUTE_TRADE_CMD_SHARES_ELEMENT;
+import static edu.uw.ruc.exchange.ProtocolConstants.EXECUTE_TRADE_CMD_TICKER_ELEMENT;
+import static edu.uw.ruc.exchange.ProtocolConstants.EXECUTE_TRADE_CMD_TYPE_ELEMENT;
+import static edu.uw.ruc.exchange.ProtocolConstants.ELEMENT_DELIMITER;
+import static edu.uw.ruc.exchange.ProtocolConstants.ENCODING;
+import static edu.uw.ruc.exchange.ProtocolConstants.CMD_ELEMENT;
+import static edu.uw.ruc.exchange.ProtocolConstants.GET_QUOTE_CMD;
+import static edu.uw.ruc.exchange.ProtocolConstants.GET_STATE_CMD;
+import static edu.uw.ruc.exchange.ProtocolConstants.GET_TICKERS_CMD;
+import static edu.uw.ruc.exchange.ProtocolConstants.OPEN_STATE;
+import static edu.uw.ruc.exchange.ProtocolConstants.CLOSED_STATE;
+import static edu.uw.ruc.exchange.ProtocolConstants.INVALID_STOCK;
+import static edu.uw.ruc.exchange.ProtocolConstants.EXECUTE_TRADE_CMD;
+import static edu.uw.ruc.exchange.ProtocolConstants.QUOTE_CMD_TICKER_ELEMENT;
+import static edu.uw.ruc.exchange.ProtocolConstants.BUY_ORDER;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;

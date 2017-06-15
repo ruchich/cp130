@@ -1,6 +1,12 @@
 package edu.uw.ruc.exchange;
 
 import java.io.IOException;
+import static edu.uw.ruc.exchange.ProtocolConstants.ENCODING;
+import static edu.uw.ruc.exchange.ProtocolConstants.PRICE_CHANGE_EVNT;
+import static edu.uw.ruc.exchange.ProtocolConstants.OPEN_EVNT;
+import static edu.uw.ruc.exchange.ProtocolConstants.CLOSED_EVNT;
+import static edu.uw.ruc.exchange.ProtocolConstants.ELEMENT_DELIMITER;
+
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -78,19 +84,29 @@ public class ExchangeNetworkAdapter implements ExchangeAdapter {
 		realExchange.addExchangeListener(this);
 		
 	}
-	
+	/** exchnge is opening*/
 	@Override
 	public void exchangeOpened(ExchangeEvent event) {
-		logger.info("#### Echange Opened ###");
-		  
+		logger.info("#### Exchange Opened ###");
+		  try{
+			  sendMulticastEvent(OPEN_EVNT);
+		  }catch( final IOException ex){
+			  logger.error("Error Joining price change group:", ex);
+		  }
 	}
+	/** THe exchange has closed- notify clients*/
 
 	@Override
 	public void exchangeClosed(ExchangeEvent event) {
 		logger.info("#### Exchange Closed ###");
-		   
-	      
+		try{
+			  sendMulticastEvent(CLOSED_EVNT);
+		  }catch( final IOException ex){
+			  logger.error("Error Joining price change group:", ex);
+		  }
 	}
+	      
+	
 
 		
 	
@@ -101,13 +117,34 @@ public class ExchangeNetworkAdapter implements ExchangeAdapter {
 	@Override
 	public void priceChanged(ExchangeEvent event) {
 		
-		      
+		 final String symbol = event.getTicker();
+		 final int price = event.getPrice();
+		 final String msg = String.join(ELEMENT_DELIMITER,PRICE_CHANGE_EVNT,symbol,
+				 Integer.toString(price));
+		 logger.info(msg);
+		 try{
+			 sendMulticastEvent(msg);
+		 }catch(final IOException ex){
+			  logger.error("Error multicasting price change ", ex);
+		  }
+		 
 		}
 
-
+	/**sending multicast event*/
+	
+	private synchronized void sendMulticastEvent(final String msg)throws IOException{
+		final byte[] buf = msg.getBytes(ENCODING);
+		datagramPacket.setData(buf);
+		datagramPacket.setLength(buf.length);
+		eventSocket.send(datagramPacket);
+		
+	}
+/** close the adapter*/
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
+		realExchange.removeExchangeListener(this);
+		cmdListener.terminate();
+		eventSocket.close();
 		
 	}
 

@@ -15,7 +15,7 @@ import edu.uw.ruc.account.AccountImpl;
 
 public class ExchangeNetworkAdapterFactory implements NetworkExchangeAdapterFactory {
 	/** This class' logger. */
-    static final Logger log = LoggerFactory.getLogger(AccountFactoryImpl.class);
+    static final Logger log = LoggerFactory.getLogger(ExchangeNetworkAdapterFactory.class);
 	
     /**Constructor*/
     public ExchangeNetworkAdapterFactory(){}

@@ -7,6 +7,8 @@ import static edu.uw.ruc.exchange.ProtocolConstants.PRICE_CHANGE_EVNT_TICKER_ELE
 import static edu.uw.ruc.exchange.ProtocolConstants.PRICE_CHANGE_EVNT_PRICE_ELEMENT;
 import static edu.uw.ruc.exchange.ProtocolConstants.ELEMENT_DELIMITER;
 import static edu.uw.ruc.exchange.ProtocolConstants.EVENT_ELEMENT;
+import static edu.uw.ruc.exchange.ProtocolConstants.ENCODING;
+
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -61,15 +63,15 @@ public class NetEventProcessor implements Runnable {
                      while(true){
                     	 eventSocket.receive(packet);
                     	 final String msg = new String(packet.getData(), packet.getOffset(), packet.getLength(), ENCODING);
-                    	 final String [] elements = msg.split(EVENT_DELIMITER);
-                    	 final String eventType = elements[Event_ELEMENT];
+                    	 final String [] elements = msg.split(ELEMENT_DELIMITER);
+                    	 final String eventType = elements[EVENT_ELEMENT];
                     	 switch(eventType){
                     	 case OPEN_EVNT:
                     		 fireListeners(ExchangeEvent.newOpenedEvent(this));
                     		 break;
 		
                     	 case CLOSED_EVNT:
-                    		 fireListeners(ExchangeEvent.newClosedEvent(this);
+                    		 fireListeners(ExchangeEvent.newClosedEvent(this));
                     		 break;
 		
                     		 case PRICE_CHANGE_EVNT:
