@@ -4,9 +4,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Certificate;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -18,6 +18,7 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.List;
 
@@ -26,6 +27,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+
+
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -295,9 +298,25 @@ private static boolean verifySignature( final byte[] data, final byte []signatur
 		verifier.update(data);
 		return verifier.verify(signature);
 		
-	}catch (KeyStoreException| |IOException |CertificateException ){
-		
+	}catch (KeyStoreException| IOException | CertificateException e){
+		throw new GeneralSecurityException("unable to retreive signing key", e);
 	}catch (InvalidKeyException |NoSuchAlgorithmException |SignatureException e){
 		throw new GeneralSecurityException("Invalid signing key", e);
 }
 }
+	private static void writeFile(final File orderFile, final CodecTriple triple)throws IOException{
+		try(
+			FileOutputStream fout = new FileOutputStream(orderFile);
+			DataOutputStream dout = new DataOutputStream(fout)){
+			writeByteArray(dout, triple.ciphertext);
+			writeByteArray(dout, triple.encipheredSharedKey);
+			writeByteArray(dout, triple.signature);
+			dout.flush();
+		}catch(IOException e){
+			throw new IOException("Error attempting write order file", e);
+		}
+			
+			
+		}
+	}
+

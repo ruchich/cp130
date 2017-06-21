@@ -1,0 +1,17 @@
+function genKey{
+KN=$1
+TN=$2
+# Create Keystore
+
+KEY_STORE = $GEN_REZ_DIR/${KN}Key.jck
+if[ ! -e $key_store]; then
+keytool -genkeypair -keyalg RSA -keysize 512 -validity 365 \
+		-dname "cn=$KN, ou =cp130, o=UW, l=Seattle, $t=Washington, c=US" \
+		-alias ${KN}PrivKey -keypass ${KN}PrivKeyPass \
+		-storetype JCEKS -keystore $KEY_STORE -storepass ${KN}StorePass
+		
+		else
+			 echo "Keystore already exists, skipping creation: KEY_STORE"
+			 
+			 
+			 
