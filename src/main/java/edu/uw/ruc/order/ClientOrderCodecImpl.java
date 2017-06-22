@@ -55,7 +55,7 @@ public class ClientOrderCodecImpl implements ClientOrderCodec {
 	private static final String ROOT_PATH = "/";
 	
 	/**Signing Algo*/
-	private static final String SIGN_ALGORITHM = "MOSmithRSA";
+	private static final String SIGN_ALGORITHM = "MD5withRSA";
 	
 	/**Structure to hold the componenets to be represented in file*/
 	
@@ -80,7 +80,7 @@ public class ClientOrderCodecImpl implements ClientOrderCodec {
 		
 	}
 	/**
-	 * 
+	 * load keystore
 	 * @param storeName name for keystore
 	 * @param storePasswd - Password for keystore
 	 * @return
@@ -93,7 +93,7 @@ public class ClientOrderCodecImpl implements ClientOrderCodec {
 	private static KeyStore loadKeyStore(final String storeName,final char[] storePasswd) throws
 	KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException 
 	{
-		try (InputStream stream = ClientOrderCodec.class.getResourceAsStream(ROOT_PATH)) { 
+		try (InputStream stream = ClientOrderCodec.class.getResourceAsStream(ROOT_PATH +storeName )) { 
 			if (stream ==null){
 				throw new KeyStoreException("Unable to locate keyStore resource" + storeName);
 			}
@@ -104,7 +104,9 @@ public class ClientOrderCodecImpl implements ClientOrderCodec {
 		}
 	}
 
-	
+	/**
+	 * encrypt the key 
+	 */
 	public void encipher(final List<ClientOrder> orders, final File orderFile,
 			final String senderKeystoreName,  final char[]senderKeyStorePasswd,
 			final String senderKeyName,  final char[]senderKeyPasswd,
@@ -218,7 +220,7 @@ CodecTriple triple = readFile(orderFile);
 
 KeyStore keyStore = loadKeyStore(receipientKeystoreName, receipientKeyStorePasswd);
 Key skey = keyStore.getKey(receipientKeyName, receipientKeyPasswd);
-byte [ ] encipheredSharedKeyBytes = decipher(skey, triple.encipheredSharedKey);
+byte [] encipheredSharedKeyBytes = decipher(skey, triple.encipheredSharedKey);
 
 SecretKey sharedSecretKey = keyBytesToAesSecretKey(encipheredSharedKeyBytes);
 byte []orderData = decipher(sharedSecretKey, triple.ciphertext);
@@ -246,10 +248,10 @@ return orders;
 
 /** Read the enciphered key, data and the signature*/
 
-private static CodecTriple readFile( final File OrderFile)throws IOException{
-	try{
-		FileInputStream inStrm = new FileInputStream(OrderFile);
-		DataInputStream dataIn = new DataInputStream(inStrm);
+private static CodecTriple readFile( final File orderFile)throws IOException{
+	try(
+		FileInputStream inStrm = new FileInputStream(orderFile);
+		DataInputStream dataIn = new DataInputStream(inStrm)){
 		CodecTriple triple = new CodecTriple();
 		triple.encipheredSharedKey = readByteArray(dataIn);
 		triple.ciphertext = readByteArray(dataIn);
@@ -308,8 +310,9 @@ private static boolean verifySignature( final byte[] data, final byte []signatur
 		try(
 			FileOutputStream fout = new FileOutputStream(orderFile);
 			DataOutputStream dout = new DataOutputStream(fout)){
-			writeByteArray(dout, triple.ciphertext);
+			
 			writeByteArray(dout, triple.encipheredSharedKey);
+			writeByteArray(dout, triple.ciphertext);
 			writeByteArray(dout, triple.signature);
 			dout.flush();
 		}catch(IOException e){
